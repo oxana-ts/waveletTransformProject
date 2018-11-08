@@ -31,7 +31,7 @@ plt.imshow(reconstructed, interpolation="nearest", cmap=plt.cm.gray)
 # Check that reconstructed image is close to the original
 np.testing.assert_allclose(original, reconstructed, atol=1e-13, rtol=1e-13)
 
-
+#holaaaaa
 # Now do the same with dwtn/idwtn, to show the difference in their signatures
 
 coeffsn = pywt.dwtn(original, 'bior1.3')
