@@ -106,7 +106,63 @@ print coeffs2_slave[1][2].shape
 
 
 
+#----------------------------------------------
 
 
+print type(coeffs2_fusion)
+print len(coeffs2_fusion)
+print type(coeffs2_fusion[0])
+
+# LL fusionada
+print "LL fusionada"
+print coeffs2_fusion[0].shape
+print coeffs2_fusion[0][0]
+print "----------------------------"
+
+# LL master
+print "LL master"
+print coeffs2_master[0].shape
+print coeffs2_master[0][0]
+print "----------------------------"
+
+print "///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"
+
+# LH fusion
+print type(coeffs2_fusion[1][0])
+print coeffs2_fusion[1][0].shape
+print coeffs2_fusion[1][0][0]
+
+# LH slave
+print type(coeffs2_slave[1][0])
+print coeffs2_slave[1][0].shape
+print coeffs2_slave[1][0][0]
+print "----------------------------"
+
+# HL fusion
+print type(coeffs2_fusion[1][1])
+print coeffs2_fusion[1][1].shape
+print coeffs2_fusion[1][1][0]
+
+# HL slave
+print type(coeffs2_slave[1][1])
+print coeffs2_slave[1][1].shape
+print coeffs2_slave[1][1][0]
+print "----------------------------"
+
+# HH fusion
+print type(coeffs2_fusion[1][2])
+print coeffs2_fusion[1][2].shape
+print coeffs2_fusion[1][2][0]
+
+# HH slave
+print type(coeffs2_slave[1][2])
+print coeffs2_slave[1][2].shape
+print coeffs2_slave[1][2][0]
+print "----------------------------"
+
+print LL_ms.shape
+print LH_slv.shape
+print HL_slv.shape
+print HH_slv.shape
 
 

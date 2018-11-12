@@ -10,6 +10,10 @@ import osgeo.gdal
 import osgeo.ogr
 from gdalconst import *
 
+import scipy
+from scipy import ndimage, signal
+
+
 
 """
 
@@ -76,33 +80,94 @@ def read_bands(input_reference):
 
     return band_list
 
+def resampling_2dArray(a):
+
+    # Scale factor
+    factor = 4
+
+    # Input image
+    #a = nup.arange(16).reshape((4,4))
+
+    #print a.shape
+
+    # Empty image enlarged by scale factor
+    b = np.zeros((a.shape[0]*factor, a.shape[1]*factor))
+
+
+    #print b.shape
+    #sys.exit()
+
+    # Fill the new array with the original values
+    b[::factor,::factor] = a
+
+
+    # Define the convolution kernel
+    kernel_1d = scipy.signal.boxcar(factor)
+    kernel_2d = np.outer(kernel_1d, kernel_1d)
+
+    # Apply the kernel by convolution, seperately in each axis
+    c = scipy.signal.convolve(b, kernel_2d, mode="valid")
+
+
+    return c
 
 
 
 
+def waveletTransform_master_slave(band_mat_master_original, band_mat_slave):
+
+
+    print "* Dimension ms original"
+    print band_mat_master_original.shape
+
+    band_mat_master_original = resampling_2dArray(band_mat_master_original)
+    #band_mat_master_resam = resampling_2dArray(band_mat_master_original)
+
+    print "* Dimension ms original sobresampleada"
+    print band_mat_master_original.shape
 
 
 
-
-def waveletTransform_master_slave(band_mat_master, band_mat_slave):
-
-
-    print band_mat_master.shape
-    print band_mat_slave.shape
-
-
-
-    b = band_mat_master.repeat(4, axis=0)
-
-    band_mat_master = b.repeat(4, axis=1)
+    #b = band_mat_master1.repeat(4, axis=0)
+    #band_mat_master = b.repeat(4, axis=1)
 
     print "-------------------------------------------"
 
-    print band_mat_master.shape
 
+
+    #print "* Dimension ms resampling"
+    #print band_mat_master_resam.shape
+
+    print "* Dimension sl original"
+    print band_mat_slave.shape
+
+    # Elimina 3 filas
+    #band_mat_slave = np.delete(band_mat_slave, range(-3,0), axis=0)
+    band_mat_slave = np.delete(band_mat_slave, -1, axis=0)
+    band_mat_slave = np.delete(band_mat_slave, -1, axis=0)
+    band_mat_slave = np.delete(band_mat_slave, -1, axis=0)
+
+    # Elimina 4 columnas
+    #band_mat_slave = np.delete(band_mat_slave, range(-4,0), axis=1)
+    band_mat_slave = np.delete(band_mat_slave, -1, axis=1)
+    band_mat_slave = np.delete(band_mat_slave, -1, axis=1)
+    band_mat_slave = np.delete(band_mat_slave, -1, axis=1)
     band_mat_slave = np.delete(band_mat_slave, -1, axis=1)
 
+    print "* Dimension eliminando 4 filas y col de sl"
     print band_mat_slave.shape
+
+
+    #fig = plt.figure()
+    #fig.suptitle("Imagen original", fontsize=14)
+    #plt.imshow(band_mat_master_original, interpolation="nearest", cmap=plt.cm.gray)
+
+    #fig = plt.figure()
+    #fig.suptitle("Imagen original resampleada", fontsize=14)
+    #plt.imshow(band_mat_master_resam, interpolation="nearest", cmap=plt.cm.gray)
+
+    #plt.show()
+
 
     #sys.exit()
 
@@ -111,13 +176,11 @@ def waveletTransform_master_slave(band_mat_master, band_mat_slave):
     # Wavelet transform of image, and plot approximation and details
     titles = ['Approximation ms', ' Horizontal detail ms',
               'Vertical detail ms', 'Diagonal detail ms']
-    coeffs2_master = pywt.dwt2(band_mat_master, 'bior1.3')
+    coeffs2_master = pywt.dwt2(band_mat_master_original, 'bior1.3')
     LL_ms, (LH_ms, HL_ms, HH_ms) = coeffs2_master
 
 
 
-    print HL_ms
-    sys.exit()
 
     # Wavelet transform of image, and plot approximation and details
     titles2 = ['Approximation sl', ' Horizontal detail sl',
@@ -196,7 +259,7 @@ def waveletTransform_master_slave(band_mat_master, band_mat_slave):
     print HL_ms.shape
     print HH_ms.shape
 
-"""
+
 
     fig = plt.figure(figsize=(12, 3))
     for i, a in enumerate([LL_ms, LH_ms, HL_ms, HH_ms]):
@@ -221,88 +284,47 @@ def waveletTransform_master_slave(band_mat_master, band_mat_slave):
 
     plt.show()
 
+    sys.exit()
+
+"""
 
     coeffs2_fusion = LL_ms, (LH_slv, HL_slv, HH_slv)
 
+    #print LL_ms.shape
+    #print LH_slv.shape
+    #print HL_slv.shape
+    #print HH_slv.shape
+    #sys.exit()
 
-    print type(coeffs2_fusion)
-    print len(coeffs2_fusion)
-    print type(coeffs2_fusion[0])
+    print "Comienza la fusion..."
 
-    # LL fusionada
-    print "LL fusionada"
-    print coeffs2_fusion[0].shape
-    print coeffs2_fusion[0][0]
-    print "----------------------------"
+    # Now reconstruct and plot the original image
+    reconstructed = pywt.idwt2(coeffs2_fusion, 'bior1.3')
+    fig = plt.figure()
+    fig.suptitle("Imagen fusionada", fontsize=14)
+    plt.imshow(reconstructed, interpolation="nearest", cmap=plt.cm.gray)
 
+    plt.show()
 
+    """
 
-    # LL master
-    print "LL master"
-    print coeffs2_master[0].shape
-    print coeffs2_master[0][0]
-    print "----------------------------"
-
-
-
-
-
-
-    print "///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"
+    fig = plt.figure()
+    fig.suptitle("Imagen original", fontsize=14)
+    plt.imshow(band_mat_master_resam, interpolation="nearest", cmap=plt.cm.gray)
 
 
 
-    # LH fusion
-    print type(coeffs2_fusion[1][0])
-    print coeffs2_fusion[1][0].shape
-    print coeffs2_fusion[1][0][0]
-
-
-    # LH slave
-    print type(coeffs2_slave[1][0])
-    print coeffs2_slave[1][0].shape
-    print coeffs2_slave[1][0][0]
-    print "----------------------------"
+    fig = plt.figure()
+    fig.suptitle("Imagen pan", fontsize=14)
+    plt.imshow(band_mat_slave, interpolation="nearest", cmap=plt.cm.gray)
 
 
 
-    # HL fusion
-    print type(coeffs2_fusion[1][1])
-    print coeffs2_fusion[1][1].shape
-    print coeffs2_fusion[1][1][0]
-
-
-    # HL slave
-    print type(coeffs2_slave[1][1])
-    print coeffs2_slave[1][1].shape
-    print coeffs2_slave[1][1][0]
-    print "----------------------------"
-
-    # HH fusion
-    print type(coeffs2_fusion[1][2])
-    print coeffs2_fusion[1][2].shape
-    print coeffs2_fusion[1][2][0]
-
-
-    # HH slave
-    print type(coeffs2_slave[1][2])
-    print coeffs2_slave[1][2].shape
-    print coeffs2_slave[1][2][0]
-    print "----------------------------"
+    plt.show()
 
 
 
 
-
-
-
-
-
-
-
-
-
-"""
     # Now reconstruct and plot the original image
     reconstructed = pywt.idwt2(coeffs2_fusion, 'bior1.3')
     fig = plt.figure()
